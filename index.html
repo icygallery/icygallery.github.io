@@ -27,6 +27,7 @@
     background: radial-gradient(circle at 20% 0%, var(--bg) 0%, var(--bg-2) 100%) fixed;
     color: var(--ink);
     min-height: 100vh;
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* ---------- Village shop sign ---------- */
@@ -137,7 +138,7 @@
     margin: 0 auto;
   }
   /* Outer wrapper only fades in; inner card does the wave
-     (kept separate so hovering never makes the card disappear) */
+     (kept separate so the wave never makes the card disappear) */
   .item {
     break-inside: avoid;
     margin-bottom: 1.8rem;
@@ -154,8 +155,14 @@
     transition: box-shadow .4s ease;
   }
   .card img { width: 100%; display: block; border-radius: 3px; }
-  .card:hover { animation: wave 1.6s ease-in-out infinite; box-shadow: 0 14px 30px var(--shadow); }
   .card:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 4px; }
+
+  /* Computer (real mouse): wave while hovering */
+  @media (hover: hover) and (pointer: fine) {
+    .card:hover { animation: wave 1.6s ease-in-out infinite; box-shadow: 0 14px 30px var(--shadow); }
+  }
+  /* Phone / tablet: one short wave when the card scrolls into view (class added by JS) */
+  .card.wave-once { animation: wave 1.6s ease-in-out 1; }
 
   @keyframes wave {
     0%   { transform: rotate(0deg)    translateY(0)    skewX(0deg); }
@@ -172,11 +179,12 @@
   /* ---------- Lightbox ---------- */
   .lightbox {
     position: fixed; inset: 0;
-    background: rgba(60, 45, 35, .82);
+    background: rgba(60, 45, 35, .85);
     display: flex; align-items: center; justify-content: center;
     opacity: 0; pointer-events: none;
     transition: opacity .35s ease;
     z-index: 10;
+    touch-action: pan-y pinch-zoom;
   }
   .lightbox.open { opacity: 1; pointer-events: auto; }
   .lightbox figure {
@@ -189,7 +197,15 @@
     position: relative;
   }
   .lightbox.open figure { transform: scale(1); }
-  .lightbox img { max-width: calc(92vw - 2rem); max-height: calc(92vh - 4rem); display: block; border-radius: 3px; }
+  .lightbox figure.slide-left  { animation: slideL .3s ease; }
+  .lightbox figure.slide-right { animation: slideR .3s ease; }
+  @keyframes slideL { from { transform: translateX(40px); opacity: .3; } to { transform: none; opacity: 1; } }
+  @keyframes slideR { from { transform: translateX(-40px); opacity: .3; } to { transform: none; opacity: 1; } }
+  .lightbox img {
+    max-width: calc(92vw - 2rem); max-height: calc(92vh - 4rem);
+    display: block; border-radius: 3px;
+    user-select: none; -webkit-user-drag: none;
+  }
   .lightbox figcaption {
     position: absolute; left: 0; right: 0; bottom: .7rem;
     text-align: center; color: var(--ink-soft);
@@ -198,7 +214,7 @@
   }
   .lb-btn {
     position: fixed; background: none; border: none;
-    color: #f3ebe0; font-size: 2.6rem; cursor: pointer;
+    color: #f3ebe0; font-size: 2.6rem; line-height: 1; cursor: pointer;
     padding: .5rem 1rem; opacity: .75; transition: opacity .2s;
     font-family: inherit;
   }
@@ -207,8 +223,27 @@
   .lb-prev { left: .5rem; top: 50%; transform: translateY(-50%); }
   .lb-next { right: .5rem; top: 50%; transform: translateY(-50%); }
 
+  /* Phones: arrows move below the picture so they never cover it */
+  @media (max-width: 700px) {
+    .lightbox figure { padding: .6rem .6rem 2.3rem; }
+    .lightbox img { max-width: calc(94vw - 1.2rem); max-height: calc(100vh - 11rem); max-height: calc(100dvh - 11rem); }
+    .lb-prev, .lb-next {
+      top: auto; bottom: 1.2rem; transform: none;
+      width: 3.2rem; height: 3.2rem; padding: 0;
+      font-size: 2rem; opacity: .95;
+      background: rgba(90, 58, 34, .75);
+      border: 2px solid rgba(255, 243, 214, .4);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .lb-prev { left: calc(50% - 4rem); }
+    .lb-next { right: calc(50% - 4rem); }
+    .lb-close { top: .3rem; right: .4rem; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .card:hover, .sign-swing { animation: none; }
+    .card:hover, .card.wave-once, .sign-swing,
+    .lightbox figure.slide-left, .lightbox figure.slide-right { animation: none; }
     .item { animation: none; opacity: 1; }
   }
 </style>
@@ -231,13 +266,13 @@
   <main class="gallery" id="gallery"></main>
 
   <div class="lightbox" id="lightbox" aria-hidden="true">
-    <button class="lb-btn lb-close" id="lbClose" aria-label="Close">&times;</button>
-    <button class="lb-btn lb-prev" id="lbPrev" aria-label="Previous">&lsaquo;</button>
-    <figure>
-      <img id="lbImg" alt="">
+    <button type="button" class="lb-btn lb-close" id="lbClose" aria-label="Close">&times;</button>
+    <button type="button" class="lb-btn lb-prev" id="lbPrev" aria-label="Previous">&lsaquo;</button>
+    <figure id="lbFig">
+      <img id="lbImg" alt="" draggable="false">
       <figcaption id="lbCap"></figcaption>
     </figure>
-    <button class="lb-btn lb-next" id="lbNext" aria-label="Next">&rsaquo;</button>
+    <button type="button" class="lb-btn lb-next" id="lbNext" aria-label="Next">&rsaquo;</button>
   </div>
 
   <!-- The list of images lives in images.js (generated by update_gallery.py) -->
@@ -246,13 +281,36 @@
     const list = (window.GALLERY_IMAGES || []);
     const gallery = document.getElementById('gallery');
     const lb = document.getElementById('lightbox');
+    const lbFig = document.getElementById('lbFig');
     const lbImg = document.getElementById('lbImg');
     const lbCap = document.getElementById('lbCap');
     let current = 0;
 
+    const isTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     if (!list.length) {
       gallery.outerHTML = '<p class="empty">the gallery is empty for now… add some art to the images folder ✿</p>';
     }
+
+    // Phones: wave each card once when it scrolls into view (again if it leaves and comes back)
+    const waveObserver = (isTouch && !reduceMotion && 'IntersectionObserver' in window)
+      ? new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            const card = entry.target;
+            if (entry.isIntersecting) {
+              if (!card.dataset.waved) {
+                card.dataset.waved = '1';
+                card.classList.remove('wave-once');
+                void card.offsetWidth; // restart animation
+                card.classList.add('wave-once');
+              }
+            } else if (entry.intersectionRatio === 0) {
+              delete card.dataset.waved;
+            }
+          });
+        }, { threshold: [0, 0.6] })
+      : null;
 
     list.forEach((file, i) => {
       const item = document.createElement('div');
@@ -272,28 +330,61 @@
       item.appendChild(card);
       card.addEventListener('click', () => openLb(i));
       card.addEventListener('keydown', e => { if (e.key === 'Enter') openLb(i); });
+      card.addEventListener('animationend', e => { if (e.animationName === 'wave') card.classList.remove('wave-once'); });
       gallery.appendChild(item);
+      if (waveObserver) waveObserver.observe(card);
     });
 
-    function show(i) {
+    function show(i, dir) {
+      if (!list.length) return;
       current = (i + list.length) % list.length;
       lbImg.src = 'images/' + list[current];
       lbImg.alt = 'Artwork ' + (current + 1) + ' of ' + list.length;
       lbCap.textContent = (current + 1) + ' / ' + list.length;
+      if (dir) {
+        lbFig.classList.remove('slide-left', 'slide-right');
+        void lbFig.offsetWidth;
+        lbFig.classList.add(dir > 0 ? 'slide-left' : 'slide-right');
+      }
     }
     function openLb(i) { show(i); lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); }
     function closeLb() { lb.classList.remove('open'); lb.setAttribute('aria-hidden', 'true'); }
+    const next = () => show(current + 1, 1);
+    const prev = () => show(current - 1, -1);
 
     document.getElementById('lbClose').addEventListener('click', closeLb);
-    document.getElementById('lbPrev').addEventListener('click', e => { e.stopPropagation(); show(current - 1); });
-    document.getElementById('lbNext').addEventListener('click', e => { e.stopPropagation(); show(current + 1); });
+    document.getElementById('lbPrev').addEventListener('click', e => { e.stopPropagation(); prev(); });
+    document.getElementById('lbNext').addEventListener('click', e => { e.stopPropagation(); next(); });
     lb.addEventListener('click', e => { if (e.target === lb) closeLb(); });
     document.addEventListener('keydown', e => {
       if (!lb.classList.contains('open')) return;
       if (e.key === 'Escape') closeLb();
-      if (e.key === 'ArrowLeft') show(current - 1);
-      if (e.key === 'ArrowRight') show(current + 1);
+      if (e.key === 'ArrowLeft') prev();
+      if (e.key === 'ArrowRight') next();
     });
+
+    // Swipe left/right in the enlarged view
+    let startX = null, startY = null, startT = 0, swiped = false;
+    lb.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1) { startX = null; return; } // ignore pinch-zoom
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      startT = Date.now();
+      swiped = false;
+    }, { passive: true });
+    lb.addEventListener('touchend', e => {
+      if (startX === null) return;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      startX = null;
+      if (Date.now() - startT > 800) return;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        swiped = true;
+        dx < 0 ? next() : prev();
+      }
+    }, { passive: true });
+    // Don't let a swipe that ends on the dark background also close the viewer
+    lb.addEventListener('click', e => { if (swiped) { e.stopImmediatePropagation(); swiped = false; } }, true);
   </script>
 </body>
 </html>
