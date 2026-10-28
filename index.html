@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>icygallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3ebe0;
+    --bg-2: #ebe0d1;
+    --card: #fbf7f1;
+    --ink: #6b5240;
+    --ink-soft: #9c8270;
+    --shadow: rgba(107, 82, 64, 0.18);
+    --wood-dark: #5a3a22;
+    --wood: #8a5a34;
+    --wood-mid: #a06a3e;
+    --wood-light: #b98050;
+    --rope: #c9a76b;
+    --paint: #fff3d6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    background: radial-gradient(circle at 20% 0%, var(--bg) 0%, var(--bg-2) 100%) fixed;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ---------- Village shop sign ---------- */
+  header {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 0 1rem 2.2rem;
+  }
+  .beam {
+    width: min(560px, 92vw);
+    height: 22px;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 46px, rgba(0,0,0,.12) 46px 48px),
+      linear-gradient(var(--wood-light), var(--wood) 60%, var(--wood-dark));
+    border: 3px solid var(--wood-dark);
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 4px 0 rgba(90,58,34,.25);
+    position: relative;
+    z-index: 2;
+  }
+  .sign-swing {
+    transform-origin: 50% -10px;
+    animation: signSway 5s ease-in-out infinite;
+    display: flex; flex-direction: column; align-items: center;
+    margin-top: -4px;
+  }
+  @keyframes signSway {
+    0%, 100% { transform: rotate(-1.4deg); }
+    50%      { transform: rotate(1.4deg); }
+  }
+  .ropes {
+    width: min(380px, 78vw);
+    height: 42px;
+    display: flex; justify-content: space-between;
+    padding: 0 34px;
+  }
+  .ropes span {
+    width: 6px; height: 100%;
+    background: repeating-linear-gradient(160deg, var(--rope) 0 5px, #a8874f 5px 8px);
+    border-radius: 3px;
+  }
+  .sign {
+    position: relative;
+    width: min(460px, 86vw);
+    padding: 1.1rem 1.6rem 1.25rem;
+    margin-top: -4px;
+    text-align: center;
+    border: 4px solid var(--wood-dark);
+    border-radius: 10px;
+    background:
+      linear-gradient(transparent 32%, rgba(60,35,18,.45) 32% 34%, transparent 34% 66%, rgba(60,35,18,.45) 66% 68%, transparent 68%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 3px, transparent 3px 11px, rgba(0,0,0,.06) 11px 13px, transparent 13px 27px),
+      linear-gradient(var(--wood-light), var(--wood-mid) 50%, var(--wood));
+    box-shadow:
+      inset 0 0 0 4px var(--wood),
+      inset 0 0 0 6px rgba(255,220,170,.25),
+      0 10px 0 -2px rgba(90,58,34,.35),
+      0 18px 28px rgba(90,58,34,.25);
+  }
+  .sign::before, .sign::after,
+  .sign .nail-b::before, .sign .nail-b::after {
+    content: ""; position: absolute;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #d9c7a6, #6e6252 70%);
+    box-shadow: 0 1px 0 rgba(0,0,0,.35);
+  }
+  .sign::before { top: 10px; left: 12px; }
+  .sign::after  { top: 10px; right: 12px; }
+  .sign .nail-b::before { bottom: 10px; left: 12px; }
+  .sign .nail-b::after  { bottom: 10px; right: 12px; }
+
+  .sign h1 {
+    font-family: "Pixelify Sans", "Courier New", monospace;
+    font-weight: 700;
+    font-size: clamp(2.1rem, 7vw, 3.4rem);
+    letter-spacing: .04em;
+    color: var(--paint);
+    text-shadow:
+      3px 3px 0 var(--wood-dark),
+      -1px -1px 0 rgba(90,58,34,.6),
+      0 0 12px rgba(255,230,180,.25);
+    line-height: 1.05;
+  }
+  .sign p {
+    font-family: "Pixelify Sans", "Courier New", monospace;
+    font-weight: 500;
+    font-size: clamp(.8rem, 2.6vw, 1rem);
+    color: #f2dcb4;
+    text-shadow: 2px 2px 0 var(--wood-dark);
+    margin-top: .35rem;
+    letter-spacing: .06em;
+  }
+  .sign .deco { color: #f6c1a8; }
+  .vine {
+    position: absolute; font-size: 1.25rem; line-height: 1;
+    filter: drop-shadow(1px 1px 0 rgba(60,35,18,.4));
+    pointer-events: none;
+  }
+  .vine.l { left: -14px; bottom: -12px; transform: rotate(-12deg); }
+  .vine.r { right: -14px; top: -14px; transform: rotate(14deg); }
+
+  /* ---------- Gallery ---------- */
+  .gallery {
+    columns: 4 260px;
+    column-gap: 1.8rem;
+    padding: 1rem clamp(1rem, 4vw, 3.5rem) 4rem;
+    max-width: 1500px;
+    margin: 0 auto;
+  }
+  /* Outer wrapper only fades in; inner card does the wave
+     (kept separate so hovering never makes the card disappear) */
+  .item {
+    break-inside: avoid;
+    margin-bottom: 1.8rem;
+    opacity: 0;
+    animation: fadeIn .8s ease forwards;
+  }
+  .card {
+    background: var(--card);
+    padding: .7rem .7rem 2rem;
+    border-radius: 6px;
+    box-shadow: 0 6px 18px var(--shadow);
+    cursor: zoom-in;
+    transform-origin: 50% 0%;
+    transition: box-shadow .4s ease;
+  }
+  .card img { width: 100%; display: block; border-radius: 3px; }
+  .card:hover { animation: wave 1.6s ease-in-out infinite; box-shadow: 0 14px 30px var(--shadow); }
+  .card:focus-visible { outline: 2px solid var(--ink-soft); outline-offset: 4px; }
+
+  @keyframes wave {
+    0%   { transform: rotate(0deg)    translateY(0)    skewX(0deg); }
+    20%  { transform: rotate(2.2deg)  translateY(-4px) skewX(-1deg); }
+    40%  { transform: rotate(-1.8deg) translateY(-6px) skewX(1deg); }
+    60%  { transform: rotate(1.4deg)  translateY(-3px) skewX(-.6deg); }
+    80%  { transform: rotate(-1deg)   translateY(-5px) skewX(.4deg); }
+    100% { transform: rotate(0deg)    translateY(0)    skewX(0deg); }
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+  .empty { text-align: center; color: var(--ink-soft); font-style: italic; font-size: 1.3rem; padding: 4rem 1rem; }
+
+  /* ---------- Lightbox ---------- */
+  .lightbox {
+    position: fixed; inset: 0;
+    background: rgba(60, 45, 35, .82);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity .35s ease;
+    z-index: 10;
+  }
+  .lightbox.open { opacity: 1; pointer-events: auto; }
+  .lightbox figure {
+    background: var(--card);
+    padding: 1rem 1rem 2.6rem;
+    border-radius: 6px;
+    max-width: 92vw; max-height: 92vh;
+    transform: scale(.92);
+    transition: transform .35s ease;
+    position: relative;
+  }
+  .lightbox.open figure { transform: scale(1); }
+  .lightbox img { max-width: calc(92vw - 2rem); max-height: calc(92vh - 4rem); display: block; border-radius: 3px; }
+  .lightbox figcaption {
+    position: absolute; left: 0; right: 0; bottom: .7rem;
+    text-align: center; color: var(--ink-soft);
+    font-family: "Pixelify Sans", "Courier New", monospace;
+    font-size: 1.05rem; letter-spacing: .08em;
+  }
+  .lb-btn {
+    position: fixed; background: none; border: none;
+    color: #f3ebe0; font-size: 2.6rem; cursor: pointer;
+    padding: .5rem 1rem; opacity: .75; transition: opacity .2s;
+    font-family: inherit;
+  }
+  .lb-btn:hover, .lb-btn:focus-visible { opacity: 1; }
+  .lb-close { top: .6rem; right: .8rem; }
+  .lb-prev { left: .5rem; top: 50%; transform: translateY(-50%); }
+  .lb-next { right: .5rem; top: 50%; transform: translateY(-50%); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card:hover, .sign-swing { animation: none; }
+    .item { animation: none; opacity: 1; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="beam" aria-hidden="true"></div>
+    <div class="sign-swing">
+      <div class="ropes" aria-hidden="true"><span></span><span></span></div>
+      <div class="sign">
+        <span class="nail-b" aria-hidden="true"></span>
+        <span class="vine l" aria-hidden="true">🌿</span>
+        <span class="vine r" aria-hidden="true">🌸</span>
+        <h1>icygallery</h1>
+        <p><span class="deco">✿</span> postcards &amp; little works of art <span class="deco">✿</span></p>
+      </div>
+    </div>
+  </header>
+
+  <main class="gallery" id="gallery"></main>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lb-btn lb-close" id="lbClose" aria-label="Close">&times;</button>
+    <button class="lb-btn lb-prev" id="lbPrev" aria-label="Previous">&lsaquo;</button>
+    <figure>
+      <img id="lbImg" alt="">
+      <figcaption id="lbCap"></figcaption>
+    </figure>
+    <button class="lb-btn lb-next" id="lbNext" aria-label="Next">&rsaquo;</button>
+  </div>
+
+  <!-- The list of images lives in images.js (generated by update_gallery.py) -->
+  <script src="images.js"></script>
+  <script>
+    const list = (window.GALLERY_IMAGES || []);
+    const gallery = document.getElementById('gallery');
+    const lb = document.getElementById('lightbox');
+    const lbImg = document.getElementById('lbImg');
+    const lbCap = document.getElementById('lbCap');
+    let current = 0;
+
+    if (!list.length) {
+      gallery.outerHTML = '<p class="empty">the gallery is empty for now… add some art to the images folder ✿</p>';
+    }
+
+    list.forEach((file, i) => {
+      const item = document.createElement('div');
+      item.className = 'item';
+      item.style.animationDelay = (i * 0.07) + 's';
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.tabIndex = 0;
+
+      const img = document.createElement('img');
+      img.src = 'images/' + file;
+      img.alt = 'Artwork ' + (i + 1);
+      img.loading = 'lazy';
+
+      card.appendChild(img);
+      item.appendChild(card);
+      card.addEventListener('click', () => openLb(i));
+      card.addEventListener('keydown', e => { if (e.key === 'Enter') openLb(i); });
+      gallery.appendChild(item);
+    });
+
+    function show(i) {
+      current = (i + list.length) % list.length;
+      lbImg.src = 'images/' + list[current];
+      lbImg.alt = 'Artwork ' + (current + 1) + ' of ' + list.length;
+      lbCap.textContent = (current + 1) + ' / ' + list.length;
+    }
+    function openLb(i) { show(i); lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); }
+    function closeLb() { lb.classList.remove('open'); lb.setAttribute('aria-hidden', 'true'); }
+
+    document.getElementById('lbClose').addEventListener('click', closeLb);
+    document.getElementById('lbPrev').addEventListener('click', e => { e.stopPropagation(); show(current - 1); });
+    document.getElementById('lbNext').addEventListener('click', e => { e.stopPropagation(); show(current + 1); });
+    lb.addEventListener('click', e => { if (e.target === lb) closeLb(); });
+    document.addEventListener('keydown', e => {
+      if (!lb.classList.contains('open')) return;
+      if (e.key === 'Escape') closeLb();
+      if (e.key === 'ArrowLeft') show(current - 1);
+      if (e.key === 'ArrowRight') show(current + 1);
+    });
+  </script>
+</body>
+</html>
